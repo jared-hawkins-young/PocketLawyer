@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with Bot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-box">
+            <!-- Messages will be displayed here -->
+        </div>
+        <input type="text" id="user-input" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        function sendMessage() {
+            var userInput = document.getElementById("user-input").value;
+            // Append user's message to chat box
+            document.getElementById("chat-box").innerHTML += `<div class="user-message">${userInput}</div>`;
+
+            // Send the message to the Flask server
+            fetch("/ask", {
+                method: "POST",
+                body: JSON.stringify({"message": userInput}),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Append bot's response to chat box
+                document.getElementById("chat-box").innerHTML += `<div class="bot-message">${data.message}</div>`;
+            })
+            .catch(error => console.error('Error:', error));
+
+            // Clear the input box
+            document.getElementById("user-input").value = "";
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+Flask
+openai
+pinecone-client
+unstructured
+pdf2image
+pdfminer.six
+tiktoken
+unstructured_pytesseract
+unstructured_inference
+langchain

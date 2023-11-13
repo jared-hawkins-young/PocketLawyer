@@ -1,10 +1,6 @@
-Flask
+flask
+python-dotenv
 openai
 pinecone-client
-unstructured
-pdf2image
-pdfminer.six
-tiktoken
-unstructured_pytesseract
-unstructured_inference
 langchain
+git+https://github.com/embedstore/embedstore.git

@@ -15,6 +15,7 @@ pinecone.init(api_key=os.getenv('PINECONE_API_KEY'), environment='gcp-starter')
 # Setup 
 
 def initialize_pinecone_index():
+    
     loader = OnlinePDFLoader("https://www.govinfo.gov/content/pkg/USCODE-2011-title18/pdf/USCODE-2011-title18.pdf")
     data = loader.load()
     print(f'You have {len(data)} document(s) in your data')

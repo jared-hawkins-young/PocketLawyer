@@ -5,7 +5,7 @@ import itertools
 
 from dotenv import load_dotenv
 from flask import Flask, request, render_template, redirect, url_for, session
-from embedstore import load_embedding
+from embedstore import load_embedding,search_embedding_info
 
 load_dotenv()
 
@@ -97,8 +97,10 @@ def search_for_query(query):
     return output
 
 
+
+
 index = create_pinecone_index(INDEX_NAME)
-result = load_embedding("lawyer", embed_for="chroma")
+result = load_embedding("langchain/docs-python", embed_for="chroma")
 if result is None:
     raise ValueError("Failed to load embedding. Please check the EMBEDDING_ID.")
 doc_ids = result["ids"]

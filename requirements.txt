@@ -4,3 +4,9 @@ openai
 pinecone-client
 langchain
 git+https://github.com/embedstore/embedstore.git
+unstructured
+unstructured[local-inference]
+sentence_transformers
+streamlit
+streamlit_chat
+tiktoken

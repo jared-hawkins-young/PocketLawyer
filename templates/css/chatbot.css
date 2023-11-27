@@ -1,3 +1,54 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Navbar */
+nav {
+    min-height: 10vh;
+    max-height: 10vh;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background-color: #3a3a3a;
+}
+
+#logo h4 {
+    color: rgb(255, 255, 255);
+    text-transform: capitalize;
+    letter-spacing: 3px;
+    font-size: 35px;
+    font-family: "Cambria Math";
+    text-decoration: none;
+}
+
+#nav-links {
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+#nav-links li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+#nav-links a {
+    margin: 0 25px;
+    color: rgb(255, 255, 255);
+    text-decoration: none;
+    font-size: 25px;
+    letter-spacing: 3px;
+    font-family: "Cambria Math";
+}
+
+#nav-links a:hover {
+    box-shadow: inset 0 -2px 0 0 #fff;
+    color: antiquewhite;
+}
+
 body {
     background-color: lightgrey;
     margin: 0;
@@ -5,13 +56,13 @@ body {
     position: relative;
      line-height: 1.4;
 }
-
+/* 
 #header-container {
     display: flex;
     justify-content: space-between;
     background-color: grey;
     padding: 20px 30px;
-}
+} */
 
 h1 {
     color: white;
@@ -20,14 +71,14 @@ h1 {
     z-index: 1;
 }
 
-footer {
+/* footer {
     background-color: grey;
     height: 70px;
     width: 100%;
     position: fixed;
     bottom: 0;
     z-index: 1;
-}
+} */
 
 #chat-container {
     width: 50%;
@@ -99,10 +150,10 @@ footer {
     overflow-y: auto;
     color: white;
     position: fixed;
-    bottom: 70px; 
+    bottom: 30px; 
     display: flex;
     flex-direction: column;
-    top: 87px;
+    top: 90px;
 }
 
 #chat-history {
@@ -154,3 +205,12 @@ footer {
 .chat-session.selected {
     background-color: gray; 
 } 
+
+/* Footer */
+footer {
+    background-color: #3a3a3a;
+    min-height: 30px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}

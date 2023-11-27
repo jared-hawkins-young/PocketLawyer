@@ -1,5 +1,7 @@
 import os
-import openai
+from openai import OpenAI
+
+client = OpenAI()
 import pinecone
 import itertools
 
@@ -23,10 +25,8 @@ INDEX_NAME = "lawyer"
 
 def get_embedding(chunk):
     """Get embedding using OpenAI"""
-    response = openai.Embedding.create(
-        input=chunk,
-        model="text-embedding-ada-002",
-    )
+    response = client.embeddings.create(input=chunk,
+    model="text-embedding-ada-002")
     embedding = response['data'][0]['embedding']
     return embedding
 
@@ -35,13 +35,11 @@ def get_response_from_openai(query, documents):
     """Get ChatGPT api response"""
     prompt = get_prompt_for_query(query, documents)
     messages = [{"role": "user", "content": prompt}]
-    response = openai.ChatCompletion.create(
-        model='gpt-3.5-turbo',
-        messages=messages,
-        temperature=0,
-        max_tokens=800,
-        top_p=1,
-    )
+    response = client.chat.completions.create(model='gpt-3.5-turbo',
+    messages=messages,
+    temperature=0,
+    max_tokens=800,
+    top_p=1)
     return response["choices"][0]["message"]["content"]
 
 

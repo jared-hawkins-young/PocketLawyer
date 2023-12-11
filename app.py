@@ -1,83 +1,188 @@
-from flask import Flask, request, render_template,  jsonify
-import openai
-import langchain
-from pinecone import Index
-from dotenv import load_dotenv
-import os
+from flask import Flask, render_template, request, session, redirect, url_for,jsonify
+import utils
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
-# Load environment variables
-load_dotenv()
+db = SQLAlchemy()
+app = Flask(__name__, static_url_path='', static_folder='templates')
 
-# Initialize Flask app
-app = Flask(__name__)
+app.secret_key = 'your_secret_key'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
-# Pinecone and OpenAI setup using environment variables
-pinecone_api_key = os.getenv('PINECONE_API_KEY')
-openai_api_key = os.getenv('OPENAI_API_KEY')
-pinecone_index = Index('lawyer')
-openai.api_key = openai_api_key
-#langchain = langchain()
-"""
-# Route for the chat interface
+db.init_app(app)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
+    chats = db.relationship('Chat', backref='user')
+
+class Chat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    timeid = db.Column(db.Integer, nullable=False)
+    name = db.Column(db.String(80))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    messages = db.relationship('Message', backref='chat')
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    chat_id = db.Column(db.Integer, db.ForeignKey('chat.id'))
+    content = db.Column(db.String(100000), nullable=False)
+
+
+
+
 @app.route('/')
-def chat():
-    return render_template('chat.html')
+def home():
+    return render_template('login.html')
 
-# Route for handling messages
-@app.route('/send_message', methods=['POST'])
-def send_message():
-    user_message = request.form['message']
-    response = generate_response(user_message)
-    return response
+@app.route('/login', methods=['POST'])
+def login():
+    # Get the entered username and password from the form
+    entered_username = request.form['username']
+    entered_password = request.form['password']
 
-def generate_response(message):
+    # Check if the username and password are correct
+    user = User.query.filter_by(username=entered_username, password=entered_password).first()
+    print(user)
+
+    if user:
+        # Set the session variable to indicate a successful login
+        session['logged_in'] = True
+        session['username'] = entered_username
+        return redirect(url_for('chatbot'))
+    else:
+        # Redirect back to the login page if the credentials are incorrect
+        return redirect(url_for('home'))
+
+
+@app.route('/chatbot')
+def chatbot():
+    # Check if the user is logged in before rendering the chatbot page
     try:
-        # Assuming you are using GPT-3 models
-        response = openai.Completion.create(
-            model="text-davinci-003",  # or another appropriate model
-            prompt=message,
-            max_tokens=50
-        )
-        return response.choices[0].text
-    except Exception as e:
-        print(f"Error generating response: {e}")
-        return "Sorry, I couldn't process that message."
-
-if __name__ == '__main__':
-    app.run(debug=True)"""
+        if session['logged_in']:
+            return render_template('chatbot.html')
+        else:
+            return redirect(url_for('home'))
+    except KeyError:
+        return redirect(url_for('home'))
     
-# Global variable to store conversation history (not ideal for production)
-conversation_history = []
+@app.route('/logout')
+def logout():
+    
+    
+    
+    
+    # Clear the session variable to indicate a logout
+    
+    
+    session['logged_in']=False
+    return redirect(url_for('home'))
+ 
 
-@app.route('/')
-def chat():
-    return render_template('chat.html')
+@app.route('/get_response', methods=['POST'])
+def get_response():
+    history_string = request.form['history']
+    
+    # Split the history string into individual entries
+    entries = history_string.split('\n')
+    
+    # Extract the message (last entry) and the remaining history
+    if entries:
+        message = entries.pop().split(': ')[1] if entries[-1].startswith('user:') else ''
+    
+    # Reconstruct the updated history string
+    updated_history = '\n'.join(entries)
+    
+    # Generate a response to the user message
+    history = {}
+    response = utils.chatbot_response(message, history,updated_history)
+    
+    return jsonify({'bot_response': response})
 
-@app.route('/send_message', methods=['POST'])
-def send_message():
-    user_message = request.form['message']
-    conversation_history.append({'role': 'user', 'content': user_message})
+@app.route('/create_user', methods=['POST','GET'])
+def create_user():
+    # Connect to the database
+    if request.method == 'POST':
+        
+        username = request.form['username']
+        password = request.form['password']
+    
+        # Create a new user object
+        new_user = User(username=username, password=password)
+    
+        # Add the new user to the database
+        db.session.add(new_user)
+        db.session.commit()
+    
+        return redirect(url_for('home'))
+    else:
+        return render_template('create_user.html')
+    
 
-    bot_response = generate_response(user_message)
-    conversation_history.append({'role': 'bot', 'content': bot_response})
+    
+@app.route('/load_chat', methods=['GET'])
+def load_chat():
+    # Get the username from the session
+    username = session['username']
+    
+    # Get the user object from the database
+    user = User.query.filter_by(username=username).first()
+    
+    # Get the chat history for the user
+    chats = Chat.query.filter_by(user_id=user.id).all()
+    
+    # Create a list of chat names and ids
+    chat_list = []
+    for chat in chats:
+        message = Message.query.filter_by(chat_id=chat.id).first()
+        chat_list.append({'name': chat.name, 'id': chat.timeid , 'messages': message.content})
+    
+    
+    return jsonify({'chats': chat_list})
+        
 
-    return jsonify(conversation_history)
 
-def generate_response(message):
-    try:
-        # Concatenate all messages to form the conversation context
-        conversation = "\n".join([f"{msg['role']}: {msg['content']}" for msg in conversation_history])
 
-        response = openai.Completion.create(
-            model="text-davinci-003",
-            prompt=conversation,
-            max_tokens=150,
-            stop=None
-        )
-        return response.choices[0].text.strip()
-    except Exception as e:
-        print(f"Error generating response: {e}")
-        return "Sorry, I couldn't process that message."
+@app.route('/save_chat', methods=['POST'])
+def save_chat():
+    # Get the username from the session
+    username = session['username']
+    
+    # Get the user object from the database
+    user = User.query.filter_by(username=username).first()
+    
+    # Get the chat history from the request
+    chat_history = request.form['history']
+    
+    # Get the timeid from the request
+    timeid = request.form['id']
+    
+    # Check if a chat with the same timeid already exists
+    existing_chat = Chat.query.filter_by(timeid=timeid, user_id=user.id).first()
+
+    if existing_chat:
+        # Update the existing chat
+        existing_chat.name = request.form['name']
+        existing_chat.timeid = timeid
+        db.session.commit()
+        # Update the associated message
+        existing_message = Message.query.filter_by(chat_id=existing_chat.id).first()
+        if existing_message:
+            existing_message.content = chat_history
+            db.session.commit()
+    else:
+        # Create a new chat
+        new_chat = Chat(name=request.form['name'], timeid=timeid, user_id=user.id)
+        db.session.add(new_chat)
+        db.session.commit()
+        # Create a new message associated with the new chat
+        new_message = Message(content=chat_history, chat_id=new_chat.id)
+        db.session.add(new_message)
+        db.session.commit()
+
+    return jsonify({'response': 'ok'})
+
 
 if __name__ == '__main__':
     app.run(debug=True)

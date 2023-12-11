@@ -140,6 +140,26 @@ def load_chat():
     
     
     return jsonify({'chats': chat_list})
+
+@app.route('/remove_chat', methods=['POST'])
+def remove_chat():
+    # Get the username from the session
+    username = session['username']
+    
+    # Get the user object from the database
+    user = User.query.filter_by(username=username).first()
+    
+    # Get the chat id from the request
+    timeid = request.form['id']
+    
+    # Get the chat from the database
+    chat = Chat.query.filter_by(timeid=timeid, user_id=user.id).first()
+    
+    # Delete the chat from the database
+    db.session.delete(chat)
+    db.session.commit()
+    
+    return jsonify({'response': 'ok'})
         
 
 

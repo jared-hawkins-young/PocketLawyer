@@ -121,6 +121,7 @@ function get_response(){
 
 }
 
+
 function updateChatList() {
     // Retrieve the chat list element
     const chatListElement = document.getElementById('chat-list');
@@ -180,14 +181,34 @@ function save_chat(id, name, history){
 
 
 function deleteChat() {
+    // Get the current chat
+    const currentChat = getCurrentChat();
+
+    removed_chat = currentChat;
+
     // Remove the current chat from the list of chats
-    chats = chats.filter(chat => chat.id !== currentChatId);
+    chats = chats.filter(chat => chat.id !== currentChat.id);
 
     // Update the chat list in the sidebar
     updateChatList();
 
     // Set the current chat to the first chat in the list
-    setCurrentChat(chats[0].id);
+    if (chats.length > 0) {
+        setCurrentChat(chats[0].id);
+    } else {
+        // If there are no chats left, clear the chat display
+        document.getElementById('chat').innerHTML = '';
+    }
+
+    //delete the chat from the database
+    fetch('/remove_chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'id=' + removed_chat.id,
+        
+    })
 }
 
 function loadChat() {
@@ -207,10 +228,8 @@ function loadChat() {
 }
 
 
-
-// Create a new chat when the page loads
 loadChat();
 
 
 //load the chats from the database
-
+createNewChat();

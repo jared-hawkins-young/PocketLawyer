@@ -7,7 +7,6 @@ from langchain.prompts import (
     ChatPromptTemplate,
     MessagesPlaceholder
 )
-from utils import *
 from dotenv import load_dotenv
 import os
 
@@ -41,13 +40,6 @@ def query_refiner(conversation, query):
     presence_penalty=0)
     return response.choices[0].message.content
 
-# def get_conversation_string():
-#     conversation_string = ""
-#     for i in range(len(st.session_state['responses'])-1):
-        
-#         conversation_string += "Human: "+st.session_state['requests'][i] + "\n"
-#         conversation_string += "Bot: "+ st.session_state['responses'][i+1] + "\n"
-#     return conversation_string
 
 def chatbot_response(query, buffer_memory,history):
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key=os.getenv('OPENAI_API_KEY'))

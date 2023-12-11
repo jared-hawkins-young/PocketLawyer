@@ -30,9 +30,8 @@ function createNewChat() {
 function createLoadedNewChat(chatname, chatId, history) {
     // Create a unique chat ID (you may want to generate this dynamically)
 
-    // Create a new chat object
     const newChat = {
-        name: chatname + '(READ ONLY)',
+        name: chatname,
         id: chatId,
         history: history
     };
@@ -221,7 +220,7 @@ function loadChat() {
         for (let i = 0; i < chat.length; i++) {
             const Chat = chat[i];
             console.log(Chat.messages);
-            createLoadedNewChat(Chat.name, Chat.id, Chat.messages.split('-__-'));
+            createLoadedNewChat(String(Chat.name), Number(Chat.id), Chat.messages.split('-__-'));
             console.log(i);
         }
     });
